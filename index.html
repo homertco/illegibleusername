@@ -1,0 +1,144 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Illegible Username Generator</title><style>body{margin:0;background:#0b0f14;font-family:Arial,sans-serif;color:#d0d7de}.container{width:650px;margin:60px auto}.title{font-size:30px;font-weight:700;margin-bottom:12px}button,input{width:100%;padding:12px;margin-top:10px;border:none;border-radius:6px;font-size:14px}button{cursor:pointer;font-weight:700}.start{background:#2563eb;color:#fff}.cors{background:#334155;color:#fff}.toggle{background:#374151;color:#fff}.copy{background:#10b981;color:#fff}.console{margin-top:15px;background:#0f172a;border:1px solid #1e293b;padding:14px;font-size:15px;white-space:pre-wrap;min-height:120px;max-height:320px;overflow-y:auto;border-radius:8px}.good{color:#22c55e}.bad{color:#ef4444}.neutral{color:#9ca3af}input{background:#111827;color:#fff;border:1px solid #1f2937}.hidden{display:none}.bottom-controls{margin-top:10px}.footer{margin-top:18px;font-size:12px;color:#6b7280;text-align:center}.footer a{color:#9ca3af;text-decoration:none;cursor:pointer}.footer a:hover{color:#d1d5db;text-decoration:underline}</style></head><body><div class="container"><div class="title">Finn's Illegible Username Checker</div><button class="start" onclick="startFinding()">Start Scan</button><button class="cors" onclick="requestCors()">Request CORS Access</button><div id="status" class="console">idle...</div><div class="bottom-controls"><button class="toggle" onclick="toggleMulti()" id="toggleBtn">Multiple Allowed: OFF</button><input id="targetCount" type="number" min="1" value="2" class="hidden"></div><button class="copy" onclick="copyResult()">Copy Result</button><div class="footer">credits to<a onclick="openCredits()">riddance-club on github</a></div></div><script>let running = false;
+let multiEnabled = false;
+
+let foundList = [];
+let lastSuccess = "";
+
+function openCredits() {
+  window.location.href =
+    "https:
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = "console " + (type || "");
+}
+
+function requestCors() {
+  window.location.href =
+    "https:
+}
+
+function toggleMulti() {
+  if (running) return;
+
+  multiEnabled = !multiEnabled;
+
+  const btn = document.getElementById("toggleBtn");
+  const input = document.getElementById("targetCount");
+
+  if (multiEnabled) {
+    btn.textContent = "Multiple Allowed: ON";
+    input.classList.remove("hidden");
+  } else {
+    btn.textContent = "Multiple Allowed: OFF";
+    input.classList.add("hidden");
+  }
+}
+
+function toggleControls(disabled) {
+  document.querySelector(".start").disabled = disabled;
+  document.querySelector(".cors").disabled = disabled;
+  document.querySelector(".toggle").disabled = disabled;
+  document.getElementById("targetCount").disabled = disabled;
+}
+
+function randomLength() {
+  return Math.floor(Math.random() * 11) + 10;
+}
+
+function randomUsername(len) {
+  const chars = ["l", "I"];
+  let out = "";
+  for (let i = 0; i < len; i++) {
+    out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return out;
+}
+
+async function checkUsername(username) {
+  const url =
+    `https:
+    `https:
+
+  const res = await fetch(url);
+  return res.json();
+}
+
+async function startFinding() {
+  if (running) return;
+  running = true;
+
+  foundList = [];
+  lastSuccess = "";
+
+  toggleControls(true);
+
+  const targetCount = multiEnabled
+    ? Math.max(1, parseInt(document.getElementById("targetCount").value || 2))
+    : 1;
+
+  let tries = 0;
+
+  while (running) {
+    tries++;
+
+    const username = randomUsername(randomLength());
+
+    setStatus(
+      `🔍 Scanning...\nAttempts: ${tries}\nTesting: ${username}`,
+      "neutral"
+    );
+
+    try {
+      const result = await checkUsername(username);
+
+      if (result.code === 0) {
+        foundList.push(username);
+        lastSuccess = username;
+
+        if (multiEnabled) {
+          setStatus(
+            `✅ FOUND!\n${username}\n\nCollected: ${foundList.length}/${targetCount}\n\nList:\n- ${foundList.join("\n- ")}`,
+            "good"
+          );
+        } else {
+          setStatus(`✅ FOUND!\n${username}`, "good");
+        }
+
+        if (foundList.length >= targetCount) {
+          running = false;
+          toggleControls(false);
+          return;
+        }
+      }
+
+    } catch (e) {
+      setStatus("Request failed (CORS/network)", "bad");
+      running = false;
+      toggleControls(false);
+      return;
+    }
+
+    await new Promise(r => setTimeout(r, 80));
+  }
+
+  toggleControls(false);
+}
+
+function copyResult() {
+  if (!lastSuccess) {
+    setStatus("Nothing to copy yet", "bad");
+    return;
+  }
+
+  const temp = document.createElement("textarea");
+  temp.value = multiEnabled ? foundList.join(", ") : lastSuccess;
+  document.body.appendChild(temp);
+  temp.select();
+  document.execCommand("copy");
+  document.body.removeChild(temp);
+
+  setStatus("Copied result", "good");
+}</script></body></html>
